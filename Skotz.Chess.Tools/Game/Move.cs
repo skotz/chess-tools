@@ -6,16 +6,27 @@
 
         public Square Destination { get; set; }
 
+        public PieceType Promotion { get; set; }
+
         public Move()
         {
             Source = Square.None;
             Destination = Square.None;
+            Promotion = PieceType.None;
         }
 
         public Move(Square source, Square destination)
         {
             Source = source;
             Destination = destination;
+            Promotion = PieceType.None;
+        }
+
+        public Move(Square source, Square destination, PieceType promotion)
+        {
+            Source = source;
+            Destination = destination;
+            Promotion = promotion;
         }
     }
 }
