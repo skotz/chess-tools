@@ -12,7 +12,7 @@ namespace Skotz.Chess.Tools.Extension
                 var file = text[0] - 'A' + fileDelta;
                 var rank = text[1] - '1' + rankDelta;
 
-                text = (file + 'A').ToString() + (rank + '1').ToString();
+                text = ((char)(file + 'A')).ToString() + ((char)(rank + '1')).ToString();
 
                 if (Enum.TryParse(text, out Square destination))
                 {
@@ -26,6 +26,12 @@ namespace Skotz.Chess.Tools.Extension
         public static int Transpose(this int square, int fileDelta, int rankDelta)
         {
             return (int)((Square)square).Transpose(fileDelta, rankDelta);
+        }
+
+        public static bool IsRank(this int square, int rank)
+        {
+            // TODO: lol, too slow
+            return ((Square)square).ToString()[1].ToString() == rank.ToString();
         }
     }
 }

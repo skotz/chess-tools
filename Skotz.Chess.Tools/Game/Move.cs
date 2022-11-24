@@ -22,11 +22,30 @@
             Promotion = PieceType.None;
         }
 
+        public Move(int source, int destination)
+        {
+            Source = (Square)source;
+            Destination = (Square)destination;
+            Promotion = PieceType.None;
+        }
+
         public Move(Square source, Square destination, PieceType promotion)
         {
             Source = source;
             Destination = destination;
             Promotion = promotion;
+        }
+
+        public Move(int source, int destination, PieceType promotion)
+        {
+            Source = (Square)source;
+            Destination = (Square)destination;
+            Promotion = promotion;
+        }
+
+        public override string ToString()
+        {
+            return $"{Source}-{Destination}{(Promotion != PieceType.None ? "-" + Promotion : "")}";
         }
     }
 }

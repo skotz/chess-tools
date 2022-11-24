@@ -45,59 +45,9 @@ namespace Skotz.Chess.Tools.Game
 
             for (var square = 0; square < 64; square++)
             {
-                if (PlayerToMove == Player.White)
+                if (PlayerToMove == GetPlayer(square))
                 {
-                    if (Pieces[square] == Piece.WhiteKing)
-                    {
-                        moves.AddRange(GetMovesForPiece(square));
-                    }
-                    else if (Pieces[square] == Piece.WhiteQueen)
-                    {
-                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_Q, my_pieces, enemy_pieces, true, capturesOnly);
-                    }
-                    else if (Pieces[square] == Piece.WhiteRook)
-                    {
-                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_R, my_pieces, enemy_pieces, true, capturesOnly);
-                    }
-                    else if (Pieces[square] == Piece.WhiteBishop)
-                    {
-                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_B, my_pieces, enemy_pieces, true, capturesOnly);
-                    }
-                    else if (Pieces[square] == Piece.WhiteKnight)
-                    {
-                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_N, my_pieces, enemy_pieces, true, capturesOnly);
-                    }
-                    else if (Pieces[square] == Piece.WhitePawn)
-                    {
-                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_P, my_pieces, enemy_pieces, true, capturesOnly);
-                    }
-                }
-                else if (PlayerToMove == Player.Black)
-                {
-                    if ((position.b_king & square_mask) != 0UL)
-                    {
-                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_K, my_pieces, enemy_pieces, false, capturesOnly);
-                    }
-                    else if ((position.b_queen & square_mask) != 0UL)
-                    {
-                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_Q, my_pieces, enemy_pieces, false, capturesOnly);
-                    }
-                    else if ((position.b_rook & square_mask) != 0UL)
-                    {
-                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_R, my_pieces, enemy_pieces, false, capturesOnly);
-                    }
-                    else if ((position.b_bishop & square_mask) != 0UL)
-                    {
-                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_B, my_pieces, enemy_pieces, false, capturesOnly);
-                    }
-                    else if ((position.b_knight & square_mask) != 0UL)
-                    {
-                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_N, my_pieces, enemy_pieces, false, capturesOnly);
-                    }
-                    else if ((position.b_pawn & square_mask) != 0UL)
-                    {
-                        GetMovesForPiece(ref moves, ref position, square, square_mask, Constants.piece_P, my_pieces, enemy_pieces, false, capturesOnly);
-                    }
+                    moves.AddRange(GetMovesForPiece(square));
                 }
             }
 
@@ -108,86 +58,83 @@ namespace Skotz.Chess.Tools.Game
         {
             var moves = new List<Move>();
 
-            var capture = false;
-            var promotion = false;
-
             // Castling
-            if (Pieces[square] == Piece.WhiteKing || Pieces[square] == Piece.BlackKing)
+            if (Pieces[square] == Piece.WhiteKing)
             {
-                if (PlayerToMove == Player.White)
+                // Short
+                if (CastleKingsideWhite)
                 {
-                    // Short
-                    if (CastleKingsideWhite)
+                    if (Pieces[(int)Square.E1] == Piece.WhiteKing &&
+                        Pieces[(int)Square.H1] == Piece.WhiteRook &&
+                        Pieces[(int)Square.F1] == Piece.None &&
+                        Pieces[(int)Square.G1] == Piece.None &&
+                        !IsSquareAttacked(Square.E1, Player.White) &&
+                        !IsSquareAttacked(Square.F1, Player.White) &&
+                        !IsSquareAttacked(Square.G1, Player.White))
                     {
-                        if (Pieces[(int)Square.E1] == Piece.WhiteKing &&
-                            Pieces[(int)Square.H1] == Piece.WhiteRook &&
-                            Pieces[(int)Square.F1] == Piece.None &&
-                            Pieces[(int)Square.G1] == Piece.None &&
-                            !IsSquareAttacked(Square.E1, Player.White) &&
-                            !IsSquareAttacked(Square.F1, Player.White) &&
-                            !IsSquareAttacked(Square.G1, Player.White))
-                        {
-                            moves.Add(new Move(Square.E1, Square.G1));
-                        }
-                    }
-
-                    // Long
-                    if (CastleQueensideWhite)
-                    {
-                        if (Pieces[(int)Square.E1] == Piece.WhiteKing &&
-                            Pieces[(int)Square.A1] == Piece.WhiteRook &&
-                            Pieces[(int)Square.D1] == Piece.None &&
-                            Pieces[(int)Square.C1] == Piece.None &&
-                            Pieces[(int)Square.B1] == Piece.None &&
-                            !IsSquareAttacked(Square.E1, Player.White) &&
-                            !IsSquareAttacked(Square.D1, Player.White) &&
-                            !IsSquareAttacked(Square.C1, Player.White))
-                        {
-                            moves.Add(new Move(Square.E1, Square.C1));
-                        }
+                        moves.Add(new Move(Square.E1, Square.G1));
                     }
                 }
-                else
-                {
-                    // Short
-                    if (CastleKingsideBlack)
-                    {
-                        if (Pieces[(int)Square.E8] == Piece.BlackKing &&
-                            Pieces[(int)Square.A8] == Piece.BlackRook && 
-                            Pieces[(int)Square.F8] == Piece.None &&
-                            Pieces[(int)Square.G8] == Piece.None &&
-                            !IsSquareAttacked(Square.E8, Player.Black) &&
-                            !IsSquareAttacked(Square.F8, Player.Black) &&
-                            !IsSquareAttacked(Square.G8, Player.Black))
-                        {
-                            moves.Add(new Move(Square.E8, Square.C8));
-                        }
-                    }
 
-                    // Long
-                    if (CastleQueensideBlack)
+                // Long
+                if (CastleQueensideWhite)
+                {
+                    if (Pieces[(int)Square.E1] == Piece.WhiteKing &&
+                        Pieces[(int)Square.A1] == Piece.WhiteRook &&
+                        Pieces[(int)Square.D1] == Piece.None &&
+                        Pieces[(int)Square.C1] == Piece.None &&
+                        Pieces[(int)Square.B1] == Piece.None &&
+                        !IsSquareAttacked(Square.E1, Player.White) &&
+                        !IsSquareAttacked(Square.D1, Player.White) &&
+                        !IsSquareAttacked(Square.C1, Player.White))
                     {
-                        if (Pieces[(int)Square.E8] == Piece.BlackKing &&
-                            Pieces[(int)Square.A8] == Piece.BlackRook &&
-                            Pieces[(int)Square.D8] == Piece.None &&
-                            Pieces[(int)Square.C8] == Piece.None &&
-                            Pieces[(int)Square.B8] == Piece.None && 
-                            !IsSquareAttacked(Square.E8, Player.Black) &&
-                            !IsSquareAttacked(Square.D8, Player.Black) &&
-                            !IsSquareAttacked(Square.C8, Player.Black))
-                        {
-                            moves.Add(new Move(Square.E8, Square.C8));
-                        }
+                        moves.Add(new Move(Square.E1, Square.C1));
+                    }
+                }
+            }
+            else if (Pieces[square] == Piece.BlackKing)
+            {
+                // Short
+                if (CastleKingsideBlack)
+                {
+                    if (Pieces[(int)Square.E8] == Piece.BlackKing &&
+                        Pieces[(int)Square.A8] == Piece.BlackRook &&
+                        Pieces[(int)Square.F8] == Piece.None &&
+                        Pieces[(int)Square.G8] == Piece.None &&
+                        !IsSquareAttacked(Square.E8, Player.Black) &&
+                        !IsSquareAttacked(Square.F8, Player.Black) &&
+                        !IsSquareAttacked(Square.G8, Player.Black))
+                    {
+                        moves.Add(new Move(Square.E8, Square.C8));
+                    }
+                }
+
+                // Long
+                if (CastleQueensideBlack)
+                {
+                    if (Pieces[(int)Square.E8] == Piece.BlackKing &&
+                        Pieces[(int)Square.A8] == Piece.BlackRook &&
+                        Pieces[(int)Square.D8] == Piece.None &&
+                        Pieces[(int)Square.C8] == Piece.None &&
+                        Pieces[(int)Square.B8] == Piece.None &&
+                        !IsSquareAttacked(Square.E8, Player.Black) &&
+                        !IsSquareAttacked(Square.D8, Player.Black) &&
+                        !IsSquareAttacked(Square.C8, Player.Black))
+                    {
+                        moves.Add(new Move(Square.E8, Square.C8));
                     }
                 }
             }
 
             var deltas = Constants.EmptyMoveDeltas;
             var depth = 1;
+            var breakOnFirst = true;
+            var pawnOnStartingSquare = false;
             if (Pieces[square] == Piece.WhiteKing || Pieces[square] == Piece.BlackKing)
             {
                 deltas = Constants.QueenMoveDeltas;
                 depth = 1;
+                breakOnFirst = false;
             }
             if (Pieces[square] == Piece.WhiteQueen || Pieces[square] == Piece.BlackQueen)
             {
@@ -208,16 +155,21 @@ namespace Skotz.Chess.Tools.Game
             {
                 deltas = Constants.KnightMoveDeltas;
                 depth = 1;
+                breakOnFirst = false;
             }
             if (Pieces[square] == Piece.WhitePawn)
             {
+                pawnOnStartingSquare = square.IsRank(2);
                 deltas = Constants.WhitePawnMoveDeltas;
                 depth = 1;
+                breakOnFirst = false;
             }
             if (Pieces[square] == Piece.BlackPawn)
             {
+                pawnOnStartingSquare = square.IsRank(7);
                 deltas = Constants.BlackPawnMoveDeltas;
                 depth = 1;
+                breakOnFirst = false;
             }
 
             var self = GetPlayer(square);
@@ -228,12 +180,69 @@ namespace Skotz.Chess.Tools.Game
                 // Loop through movements within this direction in order
                 for (var m = 1; m <= depth; m++)
                 {
+                    var capture = false;
+
+                    if (Pieces[square] == Piece.WhitePawn || Pieces[square] == Piece.BlackPawn)
+                    {
+                        if (deltas[d].PawnOriginOnly)
+                        {
+                            if (!pawnOnStartingSquare)
+                            {
+                                // Can only jump two squares on the first move
+                                continue;
+                            }
+                            else
+                            {
+                                // You can't jump over another piece
+                                var skipSquare = square.Transpose(deltas[d - 1].DeltaFile, deltas[d - 1].DeltaRank);
+                                if (GetPlayer(skipSquare) != Player.None)
+                                {
+                                    continue;
+                                }
+                            }
+                        }
+
+                        var nextSquare = square.Transpose(deltas[d].DeltaFile, deltas[d].DeltaRank);
+                        if (deltas[d].PawnCaptureOnly)
+                        {
+                            // Destination must either be an opponent piece or an en passant square
+                            var targetPlayer = GetPlayer(nextSquare);
+                            if (targetPlayer == Player.None && nextSquare != (int)EnPassant)
+                            {
+                                // Can only capture diagonally onto a blank square for en passant
+                                continue;
+                            }
+                            else if (targetPlayer == self)
+                            {
+                                // Can't en passant your own pieces
+                                continue;
+                            }
+
+                            capture = true;
+                        }
+                        else
+                        {
+                            // You can't capture a piece by moving forward
+                            if (GetPlayer(nextSquare) != Player.None)
+                            {
+                                continue;
+                            }
+                        }
+                    }
+
                     var destination = square.Transpose(deltas[d].DeltaFile * m, deltas[d].DeltaRank * m);
 
                     // Off the board?
                     if (destination == (int)Square.None)
                     {
-                        break;
+                        if (breakOnFirst)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            continue;
+                        }
                     }
 
                     var destinationPlayer = GetPlayer(destination);
@@ -241,10 +250,15 @@ namespace Skotz.Chess.Tools.Game
                     // Is the piece on this square friendly?
                     if (destinationPlayer == self)
                     {
-                        break;
+                        if (breakOnFirst)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            continue;
+                        }
                     }
-
-                    capture = false;
 
                     // Is this move a capture?
                     if (destinationPlayer != Player.None)
@@ -252,139 +266,32 @@ namespace Skotz.Chess.Tools.Game
                         capture = true;
                     }
 
-                    // Take care of all the joys of pawn calculation...
-                    if (Pieces[square] == Piece.WhitePawn || Pieces[square] == Piece.BlackPawn)
-                    {
-                        if (PlayerToMove == Player.White)
-                        {
-                            // En-passant - run BEFORE general capture checking since this won't normally be considered a capture (no piece on target square)
-                            if (EnPassant != Square.None && destination == (int)EnPassant)
-                            {
-                                moveflags |= Constants.move_flag_is_en_passent;
-                                moveflags |= Constants.move_flag_is_capture;
-                            }
-                            else
-                            {
-                                // Make sure the pawns only move sideways if they are capturing
-                                if (destination == (square_mask << 9) && !capture)
-                                {
-                                    break;
-                                }
-                                if (destination == (square_mask << 7) && !capture)
-                                {
-                                    break;
-                                }
-                            }
-
-                            // Make sure pawns don't try to capture on an initial 2 square jump or general forward move
-                            if (destination == (square_mask << 16) && capture)
-                            {
-                                break;
-                            }
-                            if (destination == (square_mask << 8) && capture)
-                            {
-                                break;
-                            }
-
-                            // Deal with promotions
-                            if ((destination & 0xFF00000000000000UL) != 0UL)
-                            {
-                                promotion = true;
-                            }
-                        }
-                        else
-                        {
-                            // Make sure the pawns don't try to move backwards
-                            if (destination > square_mask)
-                            {
-                                break;
-                            }
-
-                            // En-passant - run BEFORE general capture checking since this won't normally be considered a capture (no piece on target square)
-                            if (destination == position.en_passent_square && position.en_passent_square != 0UL)
-                            {
-                                moveflags |= Constants.move_flag_is_en_passent;
-                                moveflags |= Constants.move_flag_is_capture;
-                            }
-                            else
-                            {
-                                // Make sure the pawns only move sideways if they are capturing
-                                if (destination == (square_mask >> 9) && !capture)
-                                {
-                                    break;
-                                }
-                                if (destination == (square_mask >> 7) && !capture)
-                                {
-                                    break;
-                                }
-                            }
-
-                            // Make sure pawns don't try to capture on an initial 2 square jump or general forward move
-                            if (destination == (square_mask >> 16) && capture)
-                            {
-                                break;
-                            }
-                            if (destination == (square_mask >> 8) && capture)
-                            {
-                                break;
-                            }
-
-                            // Deal with promotions
-                            if ((destination & 0x00000000000000FFUL) != 0UL)
-                            {
-                                promotion = true;
-                            }
-                        }
-                    }
-
-                    if (promotion)
+                    // Promotions
+                    if ((Pieces[square] == Piece.WhitePawn && destination.IsRank(8)) || (Pieces[square] == Piece.BlackPawn && destination.IsRank(1)))
                     {
                         // Enter all 4 possible promotion types
-                        moves.Add(new Move()
-                        {
-                            mask_from = square_mask,
-                            mask_to = destination,
-                            flags = moveflags | Constants.move_flag_is_promote_bishop,
-                            from_piece_type = pieceType
-                        });
-                        moves.Add(new Move()
-                        {
-                            mask_from = square_mask,
-                            mask_to = destination,
-                            flags = moveflags | Constants.move_flag_is_promote_knight,
-                            from_piece_type = pieceType
-                        });
-                        moves.Add(new Move()
-                        {
-                            mask_from = square_mask,
-                            mask_to = destination,
-                            flags = moveflags | Constants.move_flag_is_promote_rook,
-                            from_piece_type = pieceType
-                        });
-                        moves.Add(new Move()
-                        {
-                            mask_from = square_mask,
-                            mask_to = destination,
-                            flags = moveflags | Constants.move_flag_is_promote_queen,
-                            from_piece_type = pieceType
-                        });
+                        moves.Add(new Move(square, destination, PieceType.Queen));
+                        moves.Add(new Move(square, destination, PieceType.Rook));
+                        moves.Add(new Move(square, destination, PieceType.Bishop));
+                        moves.Add(new Move(square, destination, PieceType.Knight));
                     }
                     else
                     {
                         // Enter a regular move
-                        moves.Add(new Move()
-                        {
-                            mask_from = square_mask,
-                            mask_to = destination,
-                            flags = moveflags,
-                            from_piece_type = pieceType
-                        });
+                        moves.Add(new Move(square, destination));
                     }
 
                     // We found a capture searching down this direction, so stop looking further
                     if (capture)
                     {
-                        break;
+                        if (breakOnFirst)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            continue;
+                        }
                     }
                 }
             }
@@ -540,7 +447,7 @@ namespace Skotz.Chess.Tools.Game
             // Check for pawn captures
             for (var d = 0; d < 8; d++)
             {
-                var deltas = self == Player.White ? Constants.WhitePawnMoveDeltas : Constants.BlackPawnMoveDeltas;
+                var deltas = self == Player.White ? Constants.WhitePawnAttackDeltas : Constants.BlackPawnAttackDeltas;
                 var destination = square.Transpose(deltas[d].DeltaFile, deltas[d].DeltaRank);
 
                 // Off the board?
