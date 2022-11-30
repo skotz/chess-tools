@@ -221,29 +221,32 @@ namespace Skotz.Chess.Tools.Game
                         }
 
                         var nextSquare = square.Transpose(deltas[d].DeltaFile, deltas[d].DeltaRank);
-                        if (deltas[d].PawnCaptureOnly)
+                        if (nextSquare >= 0)
                         {
-                            // Destination must either be an opponent piece or an en passant square
-                            var targetPlayer = GetPlayer(nextSquare);
-                            if (targetPlayer == Player.None && nextSquare != (int)EnPassant)
+                            if (deltas[d].PawnCaptureOnly)
                             {
-                                // Can only capture diagonally onto a blank square for en passant
-                                continue;
-                            }
-                            else if (targetPlayer == self)
-                            {
-                                // Can't en passant your own pieces
-                                continue;
-                            }
+                                // Destination must either be an opponent piece or an en passant square
+                                var targetPlayer = GetPlayer(nextSquare);
+                                if (targetPlayer == Player.None && nextSquare != (int)EnPassant)
+                                {
+                                    // Can only capture diagonally onto a blank square for en passant
+                                    continue;
+                                }
+                                else if (targetPlayer == self)
+                                {
+                                    // Can't en passant your own pieces
+                                    continue;
+                                }
 
-                            capture = true;
-                        }
-                        else
-                        {
-                            // You can't capture a piece by moving forward
-                            if (GetPlayer(nextSquare) != Player.None)
+                                capture = true;
+                            }
+                            else
                             {
-                                continue;
+                                // You can't capture a piece by moving forward
+                                if (GetPlayer(nextSquare) != Player.None)
+                                {
+                                    continue;
+                                }
                             }
                         }
                     }

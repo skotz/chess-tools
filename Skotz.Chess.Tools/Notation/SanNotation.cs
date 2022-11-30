@@ -1,4 +1,5 @@
-﻿using Skotz.Chess.Tools.Game;
+﻿using Skotz.Chess.Tools.Extension;
+using Skotz.Chess.Tools.Game;
 
 namespace Skotz.Chess.Tools.Notation
 {
@@ -67,6 +68,24 @@ namespace Skotz.Chess.Tools.Notation
                     san += sourceFile;
                 }
 
+                // Ambiguities
+                if (!IsUnique(state, state[move.Source], move.Destination, "", "") && move.Promotion == PieceType.None)
+                {
+                    // First by file, then by rank, then by file and rank
+                    if (IsUnique(state, state[move.Source], move.Destination, move.Source.GetFile(), ""))
+                    {
+                        san += move.Source.GetFile().ToLower();
+                    }
+                    else if (IsUnique(state, state[move.Source], move.Destination, "", move.Source.GetRank()))
+                    {
+                        san += move.Source.GetRank();
+                    }
+                    else
+                    {
+                        san += move.Source.ToString().ToLower();
+                    }
+                }
+
                 // Captures
                 if (state[move.Destination] != Piece.None || ((state[move.Source] == Piece.WhitePawn || state[move.Source] == Piece.BlackPawn) && move.Destination == state.EnPassant))
                 {
@@ -108,6 +127,48 @@ namespace Skotz.Chess.Tools.Notation
             }
 
             return san;
+        }
+
+        private static bool IsUnique(State state, Piece piece, Square destination, string file, string rank)
+        {
+            var moves = state.GetAllMoves();
+            if (!string.IsNullOrEmpty(file) && !string.IsNullOrEmpty(rank))
+            {
+                return moves.Count(x => state[x.Source] == piece && x.Destination == destination && x.Source.GetFile() == file && x.Source.GetRank() == rank) == 1;
+            }
+            else if (!string.IsNullOrEmpty(file))
+            {
+                return moves.Count(x => state[x.Source] == piece && x.Destination == destination && x.Source.GetFile() == file) == 1;
+            }
+            else if (!string.IsNullOrEmpty(rank))
+            {
+                return moves.Count(x => state[x.Source] == piece && x.Destination == destination && x.Source.GetRank() == rank) == 1;
+            }
+            else
+            {
+                return moves.Count(x => state[x.Source] == piece && x.Destination == destination) == 1;
+            }
+
+            //for (var i = Square.A8; i <= Square.H1; i++)
+            //{
+            //    if (state[i] == piece)
+            //    {
+            //        if (!string.IsNullOrEmpty(file) && !string.IsNullOrEmpty(rank) && i.GetFile() == file && i.GetRank() == rank)
+            //        {
+            //            count++;
+            //        }
+            //        else if (!string.IsNullOrEmpty(file) && i.GetFile() == file)
+            //        {
+            //            count++;
+            //        }
+            //        else if (!string.IsNullOrEmpty(rank) && i.GetRank() == rank)
+            //        {
+            //            count++;
+            //        }
+            //    }
+            //}
+
+            return true;
         }
     }
 }
