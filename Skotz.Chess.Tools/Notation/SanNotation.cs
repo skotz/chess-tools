@@ -68,11 +68,9 @@ namespace Skotz.Chess.Tools.Notation
                 }
 
                 // Captures
-                if (state[move.Destination] != Piece.None)
+                if (state[move.Destination] != Piece.None || ((state[move.Source] == Piece.WhitePawn || state[move.Source] == Piece.BlackPawn) && move.Destination == state.EnPassant))
                 {
                     san += "x";
-
-                    // TODO: En-Passant
                 }
 
                 // Destination
@@ -97,9 +95,17 @@ namespace Skotz.Chess.Tools.Notation
                 }
             }
 
-            // Check
-
-            // Checkmate
+            // Check and checkmate
+            var temp = state.Clone();
+            temp.MakeMove(move);
+            if (temp.IsCheckmate())
+            {
+                san += "#";
+            }
+            else if (temp.IsCheck())
+            {
+                san += "+";
+            }
 
             return san;
         }

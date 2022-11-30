@@ -39,6 +39,13 @@ namespace Skotz.Chess.Tools.Game
             Pieces = new Piece[8 * 8];
         }
 
+        public State Clone()
+        {
+            var clone = (State)MemberwiseClone();
+            clone.Pieces = (Piece[])Pieces.Clone();
+            return clone;
+        }
+
         public List<Move> GetAllMoves()
         {
             var moves = new List<Move>();
@@ -48,6 +55,17 @@ namespace Skotz.Chess.Tools.Game
                 if (PlayerToMove == GetPlayer(square))
                 {
                     moves.AddRange(GetMovesForPiece(square));
+                }
+            }
+
+            // Remove moves that lead to check
+            for (int i = moves.Count - 1; i >= 0; i--)
+            {
+                var temp = Clone();
+                temp.MakeMove(moves[i]);
+                if (temp.IsCheck(PlayerToMove))
+                {
+                    moves.RemoveAt(i);
                 }
             }
 
@@ -299,6 +317,219 @@ namespace Skotz.Chess.Tools.Game
             return moves;
         }
 
+        private Square FindPiece(Piece piece)
+        {
+            for (int i = 0; i < 63; i++)
+            {
+                if (Pieces[i] == piece)
+                {
+                    return (Square)i;
+                }
+            }
+
+            return Square.None;
+        }
+
+        public bool IsCheck()
+        {
+            return IsCheck(PlayerToMove);
+        }
+
+        private bool IsCheck(Player player)
+        {
+            if (player == Player.White)
+            {
+                return IsSquareAttacked(FindPiece(Piece.WhiteKing), Player.White);
+            }
+            else
+            {
+                return IsSquareAttacked(FindPiece(Piece.BlackKing), Player.Black);
+            }
+        }
+
+        public bool IsCheckmate()
+        {
+            return IsCheck() && GetAllMoves().Count == 0;
+        }
+
+        private void MovePiece(Square source, Square destination)
+        {
+            Pieces[(int)destination] = Pieces[(int)source];
+            Pieces[(int)source] = Piece.None;
+        }
+
+        public void MakeMove(Move move)
+        {
+            var piece = Pieces[(int)move.Source];
+            var enpassant = (piece == Piece.WhitePawn || piece == Piece.BlackPawn) && Pieces[(int)move.Destination] == Piece.None && move.Source.GetFile() != move.Destination.GetFile();
+            var capture = Pieces[(int)move.Destination] != Piece.None || enpassant;
+
+            // Reset flags
+            EnPassant = Square.None;
+
+            // Move the piece
+            MovePiece(move.Source, move.Destination);
+
+            // Is it white to move?
+            if (PlayerToMove == Player.White)
+            {
+                // Increment the half move count
+                HalfMovesSinceCaptureOrPawnMove++;
+
+                if (piece == Piece.WhiteKing)
+                {
+                    // Castling
+                    if (move.Source == Square.E1)
+                    {
+                        if (move.Destination == Square.G1)
+                        {
+                            // Kingside
+                            MovePiece(Square.H1, Square.F1);
+                        }
+                        else if (move.Destination == Square.C1)
+                        {
+                            // Queenside
+                            MovePiece(Square.A1, Square.D1);
+                        }
+                    }
+
+                    // The king moved, so you can't castle any more
+                    CastleKingsideWhite = false;
+                    CastleQueensideWhite = false;
+                }
+                else if (piece == Piece.WhiteRook)
+                {
+                    // Clear the corresponding castling flag for the side that this rook came from
+                    if (move.Source == Square.A1)
+                    {
+                        CastleQueensideWhite = false;
+                    }
+                    if (move.Source == Square.H1)
+                    {
+                        CastleKingsideWhite = false;
+                    }
+                }
+                else if (piece == Piece.WhitePawn)
+                {
+                    // Is this a 2 square jump? Set the en passant square
+                    if (move.Source.IsRank(2) && move.Destination.IsRank(4))
+                    {
+                        EnPassant = move.Destination.Transpose(0, -1);
+                    }
+
+                    // Is this an en-passant capture?
+                    if (enpassant)
+                    {
+                        // Remove the pawn that jumped past your destination square
+                        Pieces[(int)move.Destination.Transpose(0, -1)] = Piece.None;
+                    }
+
+                    // Deal with promotions
+                    if (move.Promotion == PieceType.Queen)
+                    {
+                        Pieces[(int)move.Destination] = Piece.WhiteQueen;
+                    }
+                    else if (move.Promotion == PieceType.Rook)
+                    {
+                        Pieces[(int)move.Destination] = Piece.WhiteRook;
+                    }
+                    else if (move.Promotion == PieceType.Bishop)
+                    {
+                        Pieces[(int)move.Destination] = Piece.WhiteBishop;
+                    }
+                    else if (move.Promotion == PieceType.Knight)
+                    {
+                        Pieces[(int)move.Destination] = Piece.WhiteKnight;
+                    }
+                }
+
+                // It's now black's turn
+                PlayerToMove = Player.Black;
+            }
+            else
+            {
+                // After each move by black we increment the full move counter
+                FullMoves++;
+                HalfMovesSinceCaptureOrPawnMove++;
+
+                if (piece == Piece.BlackKing)
+                {
+                    // Castling
+                    if (move.Source == Square.E8)
+                    {
+                        if (move.Destination == Square.G8)
+                        {
+                            // Kingside
+                            MovePiece(Square.H8, Square.F8);
+                        }
+                        else if (move.Destination == Square.C8)
+                        {
+                            // Queenside
+                            MovePiece(Square.A8, Square.D8);
+                        }
+                    }
+
+                    // The king moved, so you can't castle any more
+                    CastleKingsideBlack = false;
+                    CastleQueensideBlack = false;
+                }
+                else if (piece == Piece.BlackRook)
+                {
+                    // Clear the corresponding castling flag for the side that this rook came from
+                    if (move.Source == Square.A8)
+                    {
+                        CastleQueensideBlack = false;
+                    }
+                    if (move.Source == Square.H8)
+                    {
+                        CastleKingsideBlack = false;
+                    }
+                }
+                else if (piece == Piece.BlackPawn)
+                {
+                    // Is this a 2 square jump? Set the en passant square
+                    if (move.Source.IsRank(7) && move.Destination.IsRank(5))
+                    {
+                        EnPassant = move.Destination.Transpose(0, 1);
+                    }
+
+                    // Is this an en-passant capture?
+                    if (enpassant)
+                    {
+                        // Remove the pawn that jumped past your destination square
+                        Pieces[(int)move.Destination.Transpose(0, 1)] = Piece.None;
+                    }
+
+                    // Deal with promotions
+                    if (move.Promotion == PieceType.Queen)
+                    {
+                        Pieces[(int)move.Destination] = Piece.BlackQueen;
+                    }
+                    else if (move.Promotion == PieceType.Rook)
+                    {
+                        Pieces[(int)move.Destination] = Piece.BlackRook;
+                    }
+                    else if (move.Promotion == PieceType.Bishop)
+                    {
+                        Pieces[(int)move.Destination] = Piece.BlackBishop;
+                    }
+                    else if (move.Promotion == PieceType.Knight)
+                    {
+                        Pieces[(int)move.Destination] = Piece.BlackKnight;
+                    }
+                }
+
+                // It's now white's turn
+                PlayerToMove = Player.White;
+            }
+
+            // Reset the half move counter on any capture or pawn move
+            if (Pieces[(int)move.Source] == Piece.WhitePawn || Pieces[(int)move.Source] == Piece.BlackPawn || capture)
+            {
+                HalfMovesSinceCaptureOrPawnMove = 0;
+            }
+        }
+
         private Player GetPlayer(int square)
         {
             if (Pieces[square] == Piece.WhiteKing || Pieces[square] == Piece.WhiteQueen || Pieces[square] == Piece.WhiteRook || Pieces[square] == Piece.WhiteBishop || Pieces[square] == Piece.WhiteKnight || Pieces[square] == Piece.WhitePawn)
@@ -445,7 +676,7 @@ namespace Skotz.Chess.Tools.Game
             }
 
             // Check for pawn captures
-            for (var d = 0; d < 8; d++)
+            for (var d = 0; d < 2; d++)
             {
                 var deltas = self == Player.White ? Constants.WhitePawnAttackDeltas : Constants.BlackPawnAttackDeltas;
                 var destination = square.Transpose(deltas[d].DeltaFile, deltas[d].DeltaRank);

@@ -28,10 +28,25 @@ namespace Skotz.Chess.Tools.Extension
             return (int)((Square)square).Transpose(fileDelta, rankDelta);
         }
 
-        public static bool IsRank(this int square, int rank)
+        public static string GetFile(this Square square)
+        {
+            return square.ToString()[0].ToString();
+        }
+
+        public static string GetRank(this Square square)
+        {
+            return square.ToString()[1].ToString();
+        }
+
+        public static bool IsRank(this Square square, int rank)
         {
             // TODO: lol, too slow
-            return ((Square)square).ToString()[1].ToString() == rank.ToString();
+            return square.ToString()[1].ToString() == rank.ToString();
+        }
+
+        public static bool IsRank(this int square, int rank)
+        {
+            return ((Square)square).IsRank(rank);
         }
     }
 }
