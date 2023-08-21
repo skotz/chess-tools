@@ -63,10 +63,6 @@ namespace Skotz.Chess.Tools.Notation
                 {
                     san += "N";
                 }
-                else if (state[move.Source] == Piece.WhitePawn || state[move.Source] == Piece.BlackPawn)
-                {
-                    san += sourceFile;
-                }
 
                 // Ambiguities
                 if (!IsUnique(state, state[move.Source], move.Destination, "", "") && move.Promotion == PieceType.None)
@@ -89,6 +85,11 @@ namespace Skotz.Chess.Tools.Notation
                 // Captures
                 if (state[move.Destination] != Piece.None || ((state[move.Source] == Piece.WhitePawn || state[move.Source] == Piece.BlackPawn) && move.Destination == state.EnPassant))
                 {
+                    if (state[move.Source] == Piece.WhitePawn || state[move.Source] == Piece.BlackPawn)
+                    {
+                        san += sourceFile;
+                    }
+
                     san += "x";
                 }
 
