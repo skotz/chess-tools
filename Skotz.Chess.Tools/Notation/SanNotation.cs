@@ -148,27 +148,6 @@ namespace Skotz.Chess.Tools.Notation
             {
                 return moves.Count(x => state[x.Source] == piece && x.Destination == destination) == 1;
             }
-
-            //for (var i = Square.A8; i <= Square.H1; i++)
-            //{
-            //    if (state[i] == piece)
-            //    {
-            //        if (!string.IsNullOrEmpty(file) && !string.IsNullOrEmpty(rank) && i.GetFile() == file && i.GetRank() == rank)
-            //        {
-            //            count++;
-            //        }
-            //        else if (!string.IsNullOrEmpty(file) && i.GetFile() == file)
-            //        {
-            //            count++;
-            //        }
-            //        else if (!string.IsNullOrEmpty(rank) && i.GetRank() == rank)
-            //        {
-            //            count++;
-            //        }
-            //    }
-            //}
-
-            return true;
         }
     }
 }
