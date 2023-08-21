@@ -17,6 +17,7 @@ namespace Skotz.Chess.Tools.Tests.Notation
         [InlineData("kb6/pp6/3q2Q1/8/8/3Q4/PP6/KB6 w - - 0 1", Square.D3, Square.D6, PieceType.None, "Qdxd6")]
         [InlineData("kb6/pp6/3q2Q1/8/8/6Q1/PP6/KB6 w - - 0 1", Square.G6, Square.D6, PieceType.None, "Q6xd6")]
         [InlineData("r1bqk1nr/ppp2ppp/2np4/2b1p3/2P5/2N2NP1/PP1PPP1P/R1BQKB1R w KQkq - 0 5", Square.E2, Square.E3, PieceType.None, "e3")]
+        [InlineData("r1bqkbnr/pp1p1ppp/2B1p3/2p5/4P3/2N5/PPPP1PPP/R1BQK1NR b KQkq - 0 4", Square.B7, Square.C6, PieceType.None, "bxc6")]
         public void ParseSanMove(string fen, Square source, Square destination, PieceType promotion, string expected)
         {
             var move = new Move(source, destination, promotion);

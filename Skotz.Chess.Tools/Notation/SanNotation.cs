@@ -65,6 +65,7 @@ namespace Skotz.Chess.Tools.Notation
                 }
 
                 // Ambiguities
+                var ambiguous = false;
                 if (!IsUnique(state, state[move.Source], move.Destination, "", "") && move.Promotion == PieceType.None)
                 {
                     // First by file, then by rank, then by file and rank
@@ -80,12 +81,14 @@ namespace Skotz.Chess.Tools.Notation
                     {
                         san += move.Source.ToString().ToLower();
                     }
+
+                    ambiguous = true;
                 }
 
                 // Captures
                 if (state[move.Destination] != Piece.None || ((state[move.Source] == Piece.WhitePawn || state[move.Source] == Piece.BlackPawn) && move.Destination == state.EnPassant))
                 {
-                    if (state[move.Source] == Piece.WhitePawn || state[move.Source] == Piece.BlackPawn)
+                    if (!ambiguous && (state[move.Source] == Piece.WhitePawn || state[move.Source] == Piece.BlackPawn))
                     {
                         san += sourceFile;
                     }
